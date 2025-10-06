@@ -1,6 +1,6 @@
 import { OrderedSet as ImmutableOrderedSet, Record as ImmutableRecord, fromJS } from 'immutable';
 
-import { normalizeTag } from 'soapbox/normalizers/index.ts';
+import { normalizeTag } from '@/normalizers/index.ts';
 
 import {
   COMPOSE_MENTION,
@@ -21,8 +21,8 @@ import {
   SEARCH_RESULTS_CLEAR,
 } from '../actions/search.ts';
 
+import type { APIEntity, Tag } from '@/types/entities.ts';
 import type { AnyAction } from 'redux';
-import type { APIEntity, Tag } from 'soapbox/types/entities.ts';
 
 const ResultsRecord = ImmutableRecord({
   accounts: ImmutableOrderedSet<string>(),

@@ -1,11 +1,11 @@
 import { connect } from 'react-redux';
 
-import { uploadCompose } from 'soapbox/actions/compose.ts';
+import { uploadCompose } from '@/actions/compose.ts';
 
 import UploadButton from '../components/upload-button.tsx';
 
+import type { AppDispatch, RootState } from '@/store.ts';
 import type { IntlShape } from 'react-intl';
-import type { AppDispatch, RootState } from 'soapbox/store.ts';
 
 const mapStateToProps = (state: RootState, { composeId }: { composeId: string }) => ({
   disabled: state.compose.get(composeId)?.is_uploading,
