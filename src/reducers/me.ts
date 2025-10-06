@@ -1,4 +1,4 @@
-import { HTTPError } from 'soapbox/api/HTTPError.ts';
+import { HTTPError } from '@/api/HTTPError.ts';
 
 import {
   AUTH_LOGGED_OUT,
@@ -12,8 +12,8 @@ import {
   ME_PATCH_SUCCESS,
 } from '../actions/me.ts';
 
+import type { Me } from '@/types/soapbox.ts';
 import type { AnyAction } from 'redux';
-import type { Me } from 'soapbox/types/soapbox.ts';
 
 const initialState: Me = null;
 
