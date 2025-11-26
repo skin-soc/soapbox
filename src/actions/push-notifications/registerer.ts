@@ -81,6 +81,19 @@ async function getBackendSubscription(api: MastodonClient): Promise<WebPushSubsc
 async function sendSubscriptionToBackend(api: MastodonClient, subscription: PushSubscription): Promise<WebPushSubscription> {
   const params = {
     subscription: subscription.toJSON(),
+    /** ADDED BY GROK TO SEE IF IT FIXES THE NOTIFICATIONS PROBLEM */
+    data: {
+      alerts: {
+        follow: true,
+        favourite: true,
+        mention: true,
+        reblog: true,
+        poll: true,
+        move: true,
+        'pleroma:chat_mention': false,
+        'pleroma:emoji_reaction': false,
+      },
+    },
   };
 
   const response = await api.post('/api/v1/push/subscription', params);
