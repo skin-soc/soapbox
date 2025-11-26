@@ -1,7 +1,7 @@
 {
-  "name": "Soapbox",
-  "description": "Software for the next generation of social media.",
-  "keywords": ["fediverse"],
-  "website": "https://soapbox.pub",
+  "name": "The Antisocial Network",
+  "description": "Fediverse social media platform for skinheads.",
+  "keywords": ["fediverse", "skinheads", "social", "media", "platform"],
+  "website": "https://skinheads.social",
   "stack": "container"
 }
