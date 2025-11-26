@@ -110,7 +110,7 @@ function fetchReports(params: Record<string, any> = {}) {
     dispatch({ type: ADMIN_REPORTS_FETCH_REQUEST, params });
 
     try {
-      const response = await api(getState).get('/api/v1/admin/reports', { searchParams: params });
+      const response = await api(getState).get('/api/v1/pleroma/admin/reports', { searchParams: params });
       const reports  = await response.json();
       reports.forEach((report: APIEntity) => {
         dispatch(importFetchedAccount(report.account?.account));
@@ -133,7 +133,7 @@ function patchReports(ids: string[], reportState: string) {
     return Promise.all(
       reports.map(async ({ id, state }) => {
         try {
-          await api(getState).post(`/api/v1/admin/reports/${id}/${state === 'resolved' ? 'reopen' : 'resolve'}`);
+          await api(getState).post(`/api/v1/pleroma/admin/reports/${id}/${state === 'resolved' ? 'reopen' : 'resolve'}`);
           dispatch({ type: ADMIN_REPORTS_PATCH_SUCCESS, reports });
         } catch (error) {
           dispatch({ type: ADMIN_REPORTS_PATCH_FAIL, error, reports });
@@ -158,7 +158,7 @@ function fetchUsers(filters: Record<string, boolean>, page = 1, query?: string |
     };
 
     try {
-      const response = await api(getState).get(url || '/api/v1/admin/accounts', { searchParams: params });
+      const response = await api(getState).get(url || '/api/v1/pleroma/admin/users', { searchParams: params });
       const accounts = await response.json();
       const next = response.next();
 
@@ -179,7 +179,7 @@ function revokeName(accountId: string, reportId?: string) {
       report_id: reportId,
     };
 
-    return api(getState).post(`/api/v1/admin/accounts/${accountId}/action`, params);
+    return api(getState).post(`/api/v1/pleroma/admin/users/${accountId}/action`, params);
   };
 }
 
@@ -192,7 +192,7 @@ function deactivateUsers(accountIds: string[], reportId?: string) {
           report_id: reportId,
         };
         try {
-          await api(getState).post(`/api/v1/admin/accounts/${accountId}/action`, params);
+          await api(getState).post(`/api/v1/pleroma/admin/users/${accountId}/action`, params);
           dispatch({ type: ADMIN_USERS_DEACTIVATE_SUCCESS, accountIds: [accountId] });
         } catch (error) {
           dispatch({ type: ADMIN_USERS_DEACTIVATE_FAIL, error, accountIds: [accountId] });
@@ -221,7 +221,7 @@ function approveUser(accountId: string) {
     dispatch({ type: ADMIN_USERS_APPROVE_REQUEST, accountId });
     try {
       const { user } = await api(getState)
-        .post(`/api/v1/admin/accounts/${accountId}/approve`)
+        .post(`/api/v1/pleroma/admin/users/${accountId}/approve`)
         .then((response) => response.json());
       dispatch({ type: ADMIN_USERS_APPROVE_SUCCESS, user, accountId });
     } catch (error) {
@@ -235,7 +235,7 @@ function rejectUser(accountId: string) {
     dispatch({ type: ADMIN_USERS_REJECT_REQUEST, accountId });
     try {
       const { user } = await api(getState)
-        .post(`/api/v1/admin/accounts/${accountId}/reject`)
+        .post(`/api/v1/pleroma/admin/users/${accountId}/reject`)
         .then((response) => response.json());
       dispatch({ type: ADMIN_USERS_REJECT_SUCCESS, user, accountId });
     } catch (error) {

@@ -139,7 +139,7 @@ const getInstanceFeatures = (instance: InstanceV1 | InstanceV2) => {
      * @see PATCH /api/v1/accounts/update_credentials
      */
     accountLocation: any([
-      v.software === PLEROMA && v.build === REBASED && gte(v.version, parse('2.4.50')),
+      v.software === PLEROMA  && gte(v.version, parse('2.4.50')),
       v.software === TRUTHSOCIAL,
     ]),
 
@@ -210,7 +210,7 @@ const getInstanceFeatures = (instance: InstanceV1 | InstanceV2) => {
      * @see PATCH /api/v1/pleroma/admin/rules/:id
      * @see DELETE /api/v1/pleroma/admin/rules/:id
      */
-    adminRules: v.software === PLEROMA && v.build === REBASED && gte(v.version, parse('2.4.51')),
+    adminRules: v.software === PLEROMA  && gte(v.version, parse('2.4.51')),
 
     /**
      * Can display announcements set by admins.
@@ -246,7 +246,7 @@ const getInstanceFeatures = (instance: InstanceV1 | InstanceV2) => {
      * @see POST /api/v1/accounts
      * @see PATCH /api/v1/accounts/update_credentials
      */
-    birthdays: v.software === PLEROMA && v.build === REBASED && gte(v.version, parse('2.4.50')),
+    birthdays: v.software === PLEROMA  && gte(v.version, parse('2.4.50')),
 
     /** Whether people who blocked you are visible through the API. */
     blockersVisible: features.includes('blockers_visible'),
@@ -530,7 +530,7 @@ const getInstanceFeatures = (instance: InstanceV1 | InstanceV2) => {
      */
     familiarFollowers: any([
       v.software === MASTODON && gte(v.version, parse('3.5.0')),
-      v.software === PLEROMA && gte(v.version, parse('2.5.51')) && v.build === REBASED,
+      v.software === PLEROMA && gte(v.version, parse('2.5.51')) ,
       v.software === TAKAHE,
       v.software === DITTO,
     ]),
@@ -702,7 +702,7 @@ const getInstanceFeatures = (instance: InstanceV1 | InstanceV2) => {
     */
     instanceV2: any([
       v.software === MASTODON && gte(v.compatVersion, parse('4.0.0')),
-      v.software === PLEROMA && v.build === REBASED && gte(v.version, parse('2.5.54')),
+      v.software === PLEROMA  && gte(v.version, parse('2.5.54')),
       v.software === DITTO,
     ]),
 
@@ -736,16 +736,16 @@ const getInstanceFeatures = (instance: InstanceV1 | InstanceV2) => {
     /**
      * Can perform moderation actions with account and reports.
      * @see {@link https://docs.joinmastodon.org/methods/admin/}
-     * @see GET /api/v1/admin/reports
-     * @see POST /api/v1/admin/reports/:report_id/resolve
-     * @see POST /api/v1/admin/reports/:report_id/reopen
-     * @see POST /api/v1/admin/accounts/:account_id/action
-     * @see POST /api/v1/admin/accounts/:account_id/approve
+     * @see GET /api/v1/pleroma/admin/reports
+     * @see POST /api/v1/pleroma/admin/reports/:report_id/resolve
+     * @see POST /api/v1/pleroma/admin/reports/:report_id/reopen
+     * @see POST /api/v1/pleroma/admin/users/:account_id/action
+     * @see POST /api/v1/pleroma/admin/users/:account_id/approve
      */
     mastodonAdmin: any([
       v.software === DITTO,
       v.software === MASTODON && gte(v.compatVersion, parse('2.9.1')),
-      v.software === PLEROMA && v.build === REBASED && gte(v.version, parse('2.4.50')),
+      v.software === PLEROMA  && gte(v.version, parse('2.4.50')),
     ]),
 
     /**
@@ -921,7 +921,7 @@ const getInstanceFeatures = (instance: InstanceV1 | InstanceV2) => {
      */
     removeFromFollowers: any([
       v.software === MASTODON && gte(v.compatVersion, parse('3.5.0')),
-      v.software === PLEROMA && v.build === REBASED && gte(v.version, parse('2.4.50')),
+      v.software === PLEROMA  && gte(v.version, parse('2.4.50')),
     ]),
 
     /**
