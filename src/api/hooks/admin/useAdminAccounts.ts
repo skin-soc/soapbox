@@ -30,7 +30,7 @@ export function useAdminAccounts(filters: MastodonAdminFilters, limit?: number) 
 
   const { entities, ...rest } = useEntities(
     [Entities.ACCOUNTS, searchParams.toString()],
-    () => api.get('/api/v1/pleroma/admin/users', { searchParams }),
+    () => api.get('/api/v1/pleroma/admin/users?filters=need_approval'),
     { schema: adminAccountSchema.transform(({ account }) => account) },
   );
 
