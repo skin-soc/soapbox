@@ -452,14 +452,6 @@ const Video: React.FC<IVideo> = ({
     }
   };
 
-  /*   const handleLoadedData = () => {
-      setLoaded(true);
-      if (video.current && startTime) {
-        video.current.currentTime = startTime;
-        video.current.play();
-      }
-    }; */
-
   const handleProgress = () => {
     if (video.current && video.current.buffered.length > 0) {
       setBuffer((video.current.buffered.end(0) / video.current.duration) * 100);
