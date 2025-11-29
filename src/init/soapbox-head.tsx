@@ -22,7 +22,7 @@ const SoapboxHead: React.FC<ISoapboxHead> = ({ children }) => {
   const soapboxConfig = useSoapboxConfig();
   const theme = useTheme();
 
-  const themeCss = generateThemeCss(demo ? normalizeSoapboxConfig({ brandColor: '#0482d8' }) : soapboxConfig);
+  const themeCss = generateThemeCss(demo ? normalizeSoapboxConfig({ brandColor: '#931020' }) : soapboxConfig);
   const dsn = soapboxConfig.sentryDsn;
 
   const bodyClass = clsx('h-full bg-white text-base black:bg-black dark:bg-primary-900', {
