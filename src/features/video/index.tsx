@@ -452,6 +452,14 @@ const Video: React.FC<IVideo> = ({
     }
   };
 
+  /*   const handleLoadedData = () => {
+      setLoaded(true);
+      if (video.current && startTime) {
+        video.current.currentTime = startTime;
+        video.current.play();
+      }
+    }; */
+
   const handleProgress = () => {
     if (video.current && video.current.buffered.length > 0) {
       setBuffer((video.current.buffered.end(0) / video.current.duration) * 100);
@@ -712,11 +720,12 @@ const Video: React.FC<IVideo> = ({
                 style={{ left: `${muted ? 0 : volume * 100}%` }}
               />
             </div>
+
             <span>
               <span className='text-sm font-medium text-white/75'>{formatTime(currentTime)}</span>
               {duration > 0 && (
                 <>
-                  <span className='mx-1.5 inline-block text-sm font-medium text-white/75'>{intl.formatMessage(messages.separator)}</span>
+                  <span className='mx-1.5 inline-block text-sm font-medium text-white/75'> </span>
                   <span className='text-sm font-medium text-white/75'>{formatTime(duration)}</span>
                 </>
               )}
