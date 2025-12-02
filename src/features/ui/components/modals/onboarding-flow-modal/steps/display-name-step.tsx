@@ -108,9 +108,6 @@ const DisplayNameStep: React.FC<IDisplayNameStep> = ({ onClose, onNext }) => {
             )}
           </Button>
 
-          <Button block theme='tertiary' type='button' onClick={onNext}>
-            <FormattedMessage id='onboarding.skip' defaultMessage='Skip for now' />
-          </Button>
         </Stack>
       </Stack>
     </Stack>

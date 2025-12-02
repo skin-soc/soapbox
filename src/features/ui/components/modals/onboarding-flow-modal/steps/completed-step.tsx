@@ -30,7 +30,7 @@ const CompletedModal: React.FC<ICompletedModal> = ({ onClose, onComplete }) => {
           <Text theme='muted' align='center'>
             <FormattedMessage
               id='onboarding.finished.message'
-              defaultMessage='We are very excited to welcome you to our community! Tap the button below to get started.'
+              defaultMessage='Welcome to The Antisocial Network! Tap the button below to get started.'
             />
           </Text>
         </Stack>

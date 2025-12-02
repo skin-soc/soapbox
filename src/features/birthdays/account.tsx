@@ -1,9 +1,7 @@
-import balloonIcon from '@tabler/icons/outline/balloon.svg';
 import { defineMessages, useIntl } from 'react-intl';
 
 import { useAccount } from '@/api/hooks/index.ts';
 import AccountComponent from '@/components/account.tsx';
-import Icon from '@/components/icon.tsx';
 import HStack from '@/components/ui/hstack.tsx';
 
 const messages = defineMessages({
@@ -36,7 +34,6 @@ const Account: React.FC<IAccount> = ({ accountId }) => {
           date: formattedBirthday,
         })}
       >
-        <Icon src={balloonIcon} />
         {formattedBirthday}
       </div>
     </HStack>

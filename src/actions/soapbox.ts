@@ -66,7 +66,7 @@ const fetchSoapboxJson = (host: string | null) =>
 
 const importSoapboxConfig = (soapboxConfig: APIEntity, host: string | null) => {
   if (!soapboxConfig.brandColor) {
-    soapboxConfig.brandColor = '#0482d8';
+    soapboxConfig.brandColor = '#931020';
   }
   return {
     type: SOAPBOX_CONFIG_REQUEST_SUCCESS,

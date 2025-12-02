@@ -33,18 +33,18 @@ import type { AppDispatch, RootState } from '@/store.ts';
 
 export const SWITCH_ACCOUNT = 'SWITCH_ACCOUNT';
 
-export const AUTH_APP_CREATED    = 'AUTH_APP_CREATED';
+export const AUTH_APP_CREATED = 'AUTH_APP_CREATED';
 export const AUTH_APP_AUTHORIZED = 'AUTH_APP_AUTHORIZED';
-export const AUTH_LOGGED_IN      = 'AUTH_LOGGED_IN';
-export const AUTH_LOGGED_OUT     = 'AUTH_LOGGED_OUT';
+export const AUTH_LOGGED_IN = 'AUTH_LOGGED_IN';
+export const AUTH_LOGGED_OUT = 'AUTH_LOGGED_OUT';
 
 export const VERIFY_CREDENTIALS_REQUEST = 'VERIFY_CREDENTIALS_REQUEST';
 export const VERIFY_CREDENTIALS_SUCCESS = 'VERIFY_CREDENTIALS_SUCCESS';
-export const VERIFY_CREDENTIALS_FAIL    = 'VERIFY_CREDENTIALS_FAIL';
+export const VERIFY_CREDENTIALS_FAIL = 'VERIFY_CREDENTIALS_FAIL';
 
 export const AUTH_ACCOUNT_REMEMBER_REQUEST = 'AUTH_ACCOUNT_REMEMBER_REQUEST';
 export const AUTH_ACCOUNT_REMEMBER_SUCCESS = 'AUTH_ACCOUNT_REMEMBER_SUCCESS';
-export const AUTH_ACCOUNT_REMEMBER_FAIL    = 'AUTH_ACCOUNT_REMEMBER_FAIL';
+export const AUTH_ACCOUNT_REMEMBER_FAIL = 'AUTH_ACCOUNT_REMEMBER_FAIL';
 
 const customApp = custom('app');
 
@@ -75,10 +75,10 @@ const getAuthApp = () =>
 const createAuthApp = () =>
   (dispatch: AppDispatch, getState: () => RootState) => {
     const params = {
-      client_name:   sourceCode.displayName,
+      client_name: sourceCode.displayName,
       redirect_uris: 'urn:ietf:wg:oauth:2.0:oob',
-      scopes:        getScopes(getState()),
-      website:       sourceCode.homepage,
+      scopes: getScopes(getState()),
+      website: sourceCode.homepage,
     };
 
     return dispatch(createApp(params)).then((app: Record<string, string>) =>
@@ -91,11 +91,11 @@ const createAppToken = () =>
     const app = getState().auth.app;
 
     const params = {
-      client_id:     app?.client_id,
+      client_id: app?.client_id,
       client_secret: app?.client_secret,
-      redirect_uri:  'urn:ietf:wg:oauth:2.0:oob',
-      grant_type:    'client_credentials',
-      scope:         getScopes(getState()),
+      redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+      grant_type: 'client_credentials',
+      scope: getScopes(getState()),
     };
 
     return dispatch(obtainOAuthToken(params)).then((token: Record<string, string | number>) =>
@@ -108,13 +108,13 @@ const createUserToken = (username: string, password: string) =>
     const app = getState().auth.app;
 
     const params = {
-      client_id:     app?.client_id,
+      client_id: app?.client_id,
       client_secret: app?.client_secret,
-      redirect_uri:  'urn:ietf:wg:oauth:2.0:oob',
-      grant_type:    'password',
-      username:      username,
-      password:      password,
-      scope:         getScopes(getState()),
+      redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+      grant_type: 'password',
+      username: username,
+      password: password,
+      scope: getScopes(getState()),
     };
 
     return dispatch(obtainOAuthToken(params))
@@ -135,7 +135,7 @@ export const otpVerify = (code: string, mfa_token: string) =>
     }).then((response) => response.json()).then((token) => dispatch(authLoggedIn(token)));
   };
 
-export const verifyCredentials = (token: string, accountUrl?: string) => {
+/* export const verifyCredentials = (token: string, accountUrl?: string) => {
   const baseURL = parseBaseURL(accountUrl);
 
   return (dispatch: AppDispatch, getState: () => RootState) => {
@@ -144,6 +144,9 @@ export const verifyCredentials = (token: string, accountUrl?: string) => {
     return baseClient(token, baseURL).get('/api/v1/accounts/verify_credentials').then((response) => response.json()).then((account) => {
       dispatch(importFetchedAccount(account));
       dispatch({ type: VERIFY_CREDENTIALS_SUCCESS, token, account });
+      if (account?.is_confirmed && !localStorage.getItem('soapbox:onboarding')) {
+        dispatch(startOnboarding());
+      }
       if (account.id === getState().me) dispatch(fetchMeSuccess(account));
       return account;
     }).catch(error => {
@@ -160,6 +163,56 @@ export const verifyCredentials = (token: string, accountUrl?: string) => {
         throw error;
       }
     });
+  };
+}; */
+
+
+export const verifyCredentials = (token: string, accountUrl?: string) => {
+  const baseURL = parseBaseURL(accountUrl);
+
+  return (dispatch: AppDispatch, getState: () => RootState) => {
+    dispatch({ type: VERIFY_CREDENTIALS_REQUEST, token });
+
+    return baseClient(token, baseURL)
+      .get('/api/v1/accounts/verify_credentials')
+      .then((response) => response.json())
+      .then((account: any) => {
+        dispatch(importFetchedAccount(account));
+        dispatch({ type: VERIFY_CREDENTIALS_SUCCESS, token, account });
+
+        // 🔥 Onboarding trigger
+        // Conditions:
+        //   1) Account is confirmed (email verified + approved)
+        //   2) User has no custom avatar or banner
+        //   3) Onboarding not already completed
+        const hasDefaultAvatar = !account.avatar || account.avatar.endsWith('/avatar.png');
+        const hasDEfaultBanner = !account.header || account.header.endsWith('banner.png');
+        const isConfirmed = account?.pleroma?.is_confirmed;
+
+        if (isConfirmed && (hasDefaultAvatar || hasDEfaultBanner) && !localStorage.getItem('soapbox:onboarding')) {
+          dispatch(startOnboarding());
+        }
+
+        if (account.id === getState().me) {
+          dispatch(fetchMeSuccess(account));
+        }
+
+        return account;
+      })
+      .catch((error) => {
+        if (error?.response?.status === 403 && error?.response?.data?.id) {
+          // The user is waitlisted
+          const account = error.data;
+          dispatch(importFetchedAccount(account));
+          dispatch({ type: VERIFY_CREDENTIALS_SUCCESS, token, account });
+          if (account.id === getState().me) dispatch(fetchMeSuccess(account));
+          return account;
+        } else {
+          if (getState().me === null) dispatch(fetchMeFail(error));
+          dispatch({ type: VERIFY_CREDENTIALS_FAIL, token, error });
+          throw error;
+        }
+      });
   };
 };
 

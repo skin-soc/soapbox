@@ -97,10 +97,6 @@ const BioStep: React.FC<IBioStep> = ({ onClose, onNext }) => {
             <FormattedMessage id='onboarding.next' defaultMessage='Next' />
           )}
         </Button>
-
-        <Button block theme='tertiary' type='button' onClick={onNext}>
-          <FormattedMessage id='onboarding.skip' defaultMessage='Skip for now' />
-        </Button>
       </Stack>
     </Stack>
   );

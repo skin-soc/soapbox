@@ -83,7 +83,7 @@ const AvatarSelectionModal: React.FC<IAvatarSelectionModal> = ({ onClose, onNext
         <IconButton src={closeIcon} onClick={onClose} className='absolute -right-2 -top-6 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 rtl:rotate-180' />
         <Stack space={2} justifyContent='center' alignItems='center' className='-mx-4 mb-4 border-b border-solid pb-4 dark:border-gray-800 sm:-mx-10 sm:pb-10'>
           <Text size='2xl' align='center' weight='bold'>
-            <FormattedMessage id='onboarding.avatar.title' defaultMessage={'Choose a profile picture'} />
+            <FormattedMessage id='onboarding.avatar.title' defaultMessage={'Choose a profile picture (mandatory)'} />
           </Text>
           <Text theme='muted' align='center'>
             <FormattedMessage id='onboarding.avatar.subtitle' defaultMessage={'Just have fun with it.'} />
@@ -125,12 +125,6 @@ const AvatarSelectionModal: React.FC<IAvatarSelectionModal> = ({ onClose, onNext
             <FormattedMessage id='onboarding.next' defaultMessage='Next' />
           )}
         </Button>
-
-        {isDisabled && (
-          <Button block theme='tertiary' type='button' onClick={onNext}>
-            <FormattedMessage id='onboarding.skip' defaultMessage='Skip for now' />
-          </Button>
-        )}
       </Stack>
     </Stack>
   );
