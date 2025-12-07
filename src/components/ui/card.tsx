@@ -27,7 +27,7 @@ interface ICard {
 }
 
 /** An opaque backdrop to hold a collection of related elements. */
-const Card = forwardRef<HTMLDivElement, ICard>(({ children, rounded, transparent, slim, size = 'md', className, ...filteredProps }, ref): JSX.Element => (
+const Card = forwardRef<HTMLDivElement, ICard>(({ children, rounded = true, transparent, slim, size = 'md', className, ...filteredProps }, ref): JSX.Element => (
   <div
     ref={ref}
     {...filteredProps}
