@@ -4,7 +4,7 @@
  * With some help scaling it: https://signalvnoise.com/posts/2577-loading-spinner-animation-using-css-and-webkit
  */
 
-.spinner {
+/* .spinner {
   @apply inline-block relative w-20 h-20;
 }
 
@@ -89,5 +89,25 @@
 
   100% {
     opacity: 0;
+  }
+}
+ */
+
+/* spinner.css – simple rotating SVG spinner */
+.spinner {
+  @apply inline-block;
+  animation: spin 1s linear infinite;
+  color: #931020;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+}
+
+/* You can adjust speed here – 1s = one full turn per second */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
