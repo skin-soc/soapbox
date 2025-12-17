@@ -45,7 +45,7 @@ interface ISpinner {
 }
 
 /** Spinning loading placeholder using an external SVG. */
-const Spinner = ({ size = 30, withText = true }: ISpinner) => (
+const Spinner = ({ size = 60, withText = true }: ISpinner) => (
   <Stack space={2} justifyContent='center' alignItems='center'>
     <img
       src={spinnerSvg}
