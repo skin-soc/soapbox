@@ -5,11 +5,11 @@ import { EmojiReaction, emojiReactionSchema } from '@/schemas/index.ts';
 // https://emojipedia.org/facebook
 // I've customized them.
 export const ALLOWED_EMOJI = ImmutableList([
+  '👌',
   '👍',
-  '❤️',
+  '🍻',
   '😆',
   '😮',
-  '😢',
   '😩',
 ]);
 

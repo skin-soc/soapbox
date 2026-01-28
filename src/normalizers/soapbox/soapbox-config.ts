@@ -74,7 +74,7 @@ export const SoapboxConfigRecord = ImmutableRecord({
   brandColor: '', // Empty
   accentColor: '',
   colors: ImmutableMap(),
-  copyright: `♥${new Date().getFullYear()}. Copying is an act of love. Please copy and share.`,
+  copyright: `Copyright © ${new Date().getFullYear()} The Antisocial Network`,
   customCss: ImmutableList<string>(),
   defaultSettings: ImmutableMap<string, any>(),
   extensions: ImmutableMap(),
@@ -86,11 +86,11 @@ export const SoapboxConfigRecord = ImmutableRecord({
     homeFooter: ImmutableList<FooterItem>(),
   }),
   allowedEmoji: ImmutableList<string>([
+    '👌',
     '👍',
-    '❤️',
+    '🍻',
     '😆',
     '😮',
-    '😢',
     '😩',
   ]),
   verifiedIcon: '',
@@ -114,7 +114,7 @@ export const SoapboxConfigRecord = ImmutableRecord({
    * Whether to use the preview URL for media thumbnails.
    * On some platforms this can be too blurry without additional configuration.
    */
-  mediaPreview: false,
+  mediaPreview: true,
   sentryDsn: undefined as string | undefined,
 }, 'SoapboxConfig');
 
