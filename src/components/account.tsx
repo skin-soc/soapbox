@@ -81,7 +81,7 @@ const Account = ({
   actionIcon,
   actionTitle,
   actionAlignment = 'center',
-  avatarSize = 42,
+  avatarSize = 48,
   hidden = false,
   hideActions = false,
   onActionClick,

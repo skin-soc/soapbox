@@ -20,6 +20,7 @@ const config: Config = {
     },
     extend: {
       boxShadow: ({ theme }) => ({
+        'soft-card': '0 6px 18px rgba(0, 0, 0, 0.08)',
         '3xl': '0 25px 75px -15px rgba(0, 0, 0, 0.25)',
         'inset-ring': `inset 0 0 0 2px ${theme('colors.accent-blue')}`,
         'card': `rgba(0, 0, 0, 0.35, 0.1) 0px 4px 16px, 
@@ -29,6 +30,9 @@ const config: Config = {
       }),
       fontSize: {
         base: '0.9375rem',
+      },
+      borderRadius: {
+        '2xl': '1.25rem',
       },
       fontFamily: {
         arabic: [
