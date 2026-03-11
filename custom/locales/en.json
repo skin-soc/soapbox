@@ -3,5 +3,24 @@
   "account.posts_with_replies": "Stomps & Moans",
   "compose.submit_success": "You've just stomped another cunt!",
   "compose_form.publish_loud": "Stomp it!",
-  "compose_form.publish": "Stomp"
+  "compose_form.publish": "Stomp",
+  "navigation.compose": "Stomp",
+  "navigation.compose_group": "Stomp in Group",
+  "account_moderation_modal.roles.admin": "Führer",
+  "account_moderation_modal.roles.moderator": "Boss",
+  "account_moderation_modal.roles.user": "Skin",
+  "account.verified": "Real Life Skinhead",
+  "account_moderation_modal.fields.verified": "Real Life Skinhead",
+  "compose.stomp_variants": [
+    "Stomp it!",
+    "Bang it out!",
+    "Oi! Stomp!",
+    "Oi! Oi! Oi!",
+    "Put the boot in!",
+    "Stomp the fucker!",
+    "Smash it!"
+  ],
+  "navigation_bar.compose": "Skinhead stomping time...",
+  "compose_form.placeholder": "Who you gonna fuck up then?"
+
 }
