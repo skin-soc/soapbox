@@ -1,0 +1,70 @@
+{
+  "name": "The Antisocial Network",
+  "short_name": "Skinheads",
+  "scope": "https://skinheads.social",
+  "start_url": "/",
+  "theme_color": "#931020",
+  "background_color": "#000000",
+  "categories": [
+    "social"
+  ],
+  "description": "The Antisocial Network - the fediverse for skinheads",
+  "display": "standalone",
+  "id": "3.2.0",
+  "dir": "ltr",
+  "lang": "en",
+  "display_override": ["fullscreen"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "type": "image/svg+xml"
+    }
+  ],
+  "serviceworker": {
+    "src": "/sw.js"
+  },
+  "share_target": {
+    "action": "share",
+    "method": "GET",
+    "params": {
+      "text": "text",
+      "title": "title",
+      "url": "url"
+    }
+  },
+  "shortcuts": [
+    {
+      "icons": [
+        {
+          "sizes": "192x192",
+          "src": "/images/shortcuts/search.png"
+        }
+      ],
+      "name": "Search",
+      "url": "/search"
+    },
+    {
+      "icons": [
+        {
+          "sizes": "192x192",
+          "src": "/images/shortcuts/notifications.png"
+        }
+      ],
+      "name": "Notifications",
+      "url": "/notifications"
+    },
+    {
+      "icons": [
+        {
+          "sizes": "192x192",
+          "src": "/images/shortcuts/chats.png"
+        }
+      ],
+      "name": "Chats",
+      "url": "/chats"
+    }
+  ]
+}
+
+

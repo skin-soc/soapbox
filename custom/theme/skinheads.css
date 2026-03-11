@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: url('https://skinheads.social/skinheads.jpg') !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-position: bottom center !important;
+    background-blend-mode: normal !important;
+    pointer-events: none !important;
+  }
+
+  main {
+    @apply opacity-100 border-none !important;
+  }
+
+}
+
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.sticky.top-0.z-50.lg\:hidden>nav>div>div>div.flex.rtl\:space-x-reverse.items-center.space-x-4.flex-1.lg\:items-stretch.justify-start>a>img {
+  height: 3rem !important;
+  color: grey;
+  display: inline-block;
+  mask: linear-gradient(-45deg, #fff 30%, #fff5, #fff 70%) right/350% 100%;
+  animation: shimmer 10s infinite;
+  font-size: 50px;
+  max-width: 200px;
+}
+
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.sticky.top-0.z-50.lg\:hidden>nav>div>div>div.flex.rtl\:space-x-reverse.items-center.space-x-4.flex-1.lg\:items-stretch.justify-center.lg\:justify-start>a>img {
+  height: 3rem !important;
+  display: grid !important;
+  place-content: center !important;
+  place-items: center !important;
+  color: grey;
+  display: inline-block;
+  mask: linear-gradient(-45deg, #fff 30%, #fff5, #fff 70%) right/350% 100%;
+  animation: shimmer 10s infinite;
+  font-size: 50px;
+  max-width: 200px;
+}
+
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>div>div>div>div.flex.flex-col.space-y-6>a>img {
+  height: 6rem !important;
+  color: grey;
+  display: inline-block;
+  mask: linear-gradient(-45deg, #fff 30%, #fff5, #fff 70%) right/350% 100%;
+  animation: shimmer 10s infinite;
+  font-size: 50px;
+  max-width: 200px;
+}
+
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>aside>div>div.space-y-2>p {
+  display: none !important;
+}
+
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.sticky.top-0.z-50.lg\:hidden>nav>div>div>div.flex.rtl\:space-x-reverse.items-center.space-x-4.flex-1.lg\:items-stretch.justify-center.lg\:justify-start>a {
+  margin-left: 3px !important;
+}
+
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div>div>div>div>div.ptr>div.ptr__children>div:nth-child(1)>div>div.divide-y.divide-gray-200.black\:divide-gray-800.dark\:divide-primary-800.divide-solid>div:nth-child(2) {
+  border-width: 0 !important;
+}
+/*
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div.bg-white.dark\:bg-primary-900.black\:bg-black.overflow-hidden.rounded-xl.py-4.px-5.relative.z-\[1\].border-b.border-gray-200.transition.black\:border-gray-800.dark\:border-gray-800 {
+  background-color: rgb(var(--color-primary-900) / var(--tw-bg-opacity)) !important;
+  border: none !important;
+}
+
+ #soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div.sticky.top-11.z-50.bg-white.black\:bg-black.dark\:bg-primary-900.lg\:top-0>div>div.absolute.h-\[3px\].w-full.bg-primary-200.dark\:bg-gray-800,
+  #soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div>div>div>div>div:nth-child(1)>div.absolute.h-\[3px\].w-full.bg-primary-200.dark\:bg-gray-800 {
+    background-color: transparent !important;
+  }
+
+  #status-list>div>div.divide-y.divide-solid.divide-gray-200.dark\:divide-gray-800>div:nth-child(n) {
+    border-style: none !important;
+  }
+
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div.sticky.top-11.z-50.bg-white.black\:bg-black.dark\:bg-primary-900.lg\:top-0,
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div>div>div>div>div>div.relative.px-4,
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div>div>div>div>div:nth-child(1)>div:nth-child(3),
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div>div>div>div>div>div.flex.flex-col.space-y-4.px-6,
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div>div>div>div>div>div:nth-child(1)>div.px-4.sm\:px-6,
+#soapbox>div:nth-child(1)>div>div.z-10.flex.min-h-screen.flex-col>div.relative.flex.grow.flex-col>div>main>div>div>div>div.bg-white.dark\:bg-primary-900.black\:bg-black.overflow-hidden.rounded-xl.py-4.px-5
+ {
+  background-color: rgb(var(--color-primary-900) / var(--tw-bg-opacity)) !important;
+  border-radius: 1rem !important;
+} 
+
+@layer utilities {
+  .status {
+    @apply min-h-[54px] cursor-default animate-fade opacity-100 dark:divide-none;
+  }
+
+  .thread {
+    @apply bg-white black:bg-black dark:bg-primary-900;
+
+    .status--content-wrapper {
+      @apply pl-[54px] rtl:pl-0 rtl:pr-[54px];
+    }
+  }
+
+  .thread__status {
+    @apply relative pb-4;
+
+    .status--wrapper {
+      @apply shadow-none p-0;
+    }
+  }
+
+  .notification .status--wrapper {
+    @apply p-0 shadow-none rounded-none;
+  }
+
+  .status--wrapper {
+    @apply rounded-xl mb-6 shadow-md bg-white dark:bg-primary-900 p-5 !important;
+
+    border: 1px solid rgb(0 0 0 / 0.1);
+
+    .reply-mentions {
+      display: block;
+
+      span {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .status--wrapper+.status--wrapper {
+    @apply mt-6;
+  }
+
+  [column-type='filled'] .status--wrapper,
+  [column-type='filled'] .status-placeholder {
+    @apply bg-transparent dark:bg-transparent rounded-none shadow-none;
+  }
+
+  main {
+    background-color: transparent !important;
+  }
+
+  main {
+    border: none !important;
+  }
+
+  .status--wrapper {
+    border: none !important;
+  }
+
+
+  main .dark\:bg-primary-900,
+  main .black\:bg-black,
+  main .dark\:bg-gray-700\/90:is(.dark *) {
+    background-color: transparent !important;
+    border-style: none !important;
+  }
+
+ main .dark\:bg-primary-800\/50 {
+    background-color: #931020 !important;
+  }
+
+  main .lg:top-0 {
+    background-color: #931020 !important
+  }
+
+  .thread,
+  .thread * {
+    border: none !important;
+  }
+
+  .status::before,
+  .status:not(:first-child)::before,
+  .status:before,
+  .thread .status::before {
+    content: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+}
+*/
+
+@keyframes shimmer {
+  100% {
+    mask-position: left
+  }
+}
+
+/* tailwind.css */
+.avatar {
+  @apply h-12 w-12; /* 48px */
+}
