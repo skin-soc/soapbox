@@ -78,7 +78,8 @@ const UploadButton: React.FC<IUploadButton> = ({
           ref={fileElement}
           type='file'
           multiple
-          accept={attachmentTypes?.join(',')}
+          //accept={attachmentTypes?.join(',')}
+          accept='image/*,video/*'
           onChange={handleChange}
           disabled={disabled}
           className='hidden'
