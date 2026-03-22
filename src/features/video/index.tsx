@@ -1,5 +1,7 @@
 import arrowsMaximizeIcon from '@tabler/icons/outline/arrows-maximize.svg';
 import arrowsMinimizeIcon from '@tabler/icons/outline/arrows-minimize.svg';
+import pictureInPictureOnIcon from '@tabler/icons/outline/picture-in-picture-on.svg';
+import pictureInPictureIcon from '@tabler/icons/outline/picture-in-picture.svg';
 import playerPauseIcon from '@tabler/icons/outline/player-pause.svg';
 import playerPlayIcon from '@tabler/icons/outline/player-play.svg';
 import volume3Icon from '@tabler/icons/outline/volume-3.svg';
@@ -342,7 +344,7 @@ const Video: React.FC<IVideo> = ({
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
         setIsPiP(false);
-      } else if (document.pictureInPictureEnabled && video.current.disablePictureInPicture !== true) {
+      } else if ('pictureInPictureEnabled' in document && document.pictureInPictureEnabled && video.current.disablePictureInPicture !== true) {
         await video.current.requestPictureInPicture();
         setIsPiP(true);
       } else {
@@ -718,25 +720,35 @@ const Video: React.FC<IVideo> = ({
               </span>
             )}
           </div>
-          <div className='flex min-w-[30px] flex-auto items-center truncate text-[16px]'>
-            {isMobile ? (
+          <div className='flex min-w-[30px] flex-auto items-center justify-end gap-1 truncate text-[16px]'>
+            {/* PiP button - always show on desktop, only show on mobile */}
+            {(isMobile || true) && (  // change 'true' to 'false' if you ever want to hide PiP on desktop
               <button
                 type='button'
                 title={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
                 aria-label={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
-                disabled={!('pictureInPictureEnabled' in document)}
+                // eslint-disable-next-line compat/compat
+                disabled={!('pictureInPictureEnabled' in document) || !document.pictureInPictureEnabled}
                 className={clsx(
                   'inline-block flex-none border-0 bg-transparent px-[6px] py-[5px] text-[16px] text-white/75 opacity-75 outline-none hover:text-white hover:opacity-100 focus:text-white focus:opacity-100 active:text-white active:opacity-100',
                   {
                     'py-[10px]': fullscreen,
-                    'opacity-50 cursor-not-allowed': !('pictureInPictureEnabled' in document),
+                    // eslint-disable-next-line compat/compat
+                    'opacity-50 cursor-not-allowed': !document.pictureInPictureEnabled,
                   },
                 )}
                 onClick={togglePiP}
               >
-                <SvgIcon className='w-[20px]' src={isPiP ? arrowsMinimizeIcon : arrowsMaximizeIcon} />
+                <SvgIcon
+                  className='w-[20px]'
+                  src={isPiP ? pictureInPictureOnIcon : pictureInPictureIcon}  // ← use dedicated icons if imported
+                // OR fallback: src={isPiP ? arrowsMinimizeIcon : arrowsMaximizeIcon}
+                />
               </button>
-            ) : (
+            )}
+
+            {/* Fullscreen button - only on non-mobile */}
+            {!isMobile && (
               <button
                 type='button'
                 title={intl.formatMessage(fullscreen ? messages.exit_fullscreen : messages.fullscreen)}
