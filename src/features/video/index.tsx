@@ -724,14 +724,12 @@ const Video: React.FC<IVideo> = ({
                 type='button'
                 title={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
                 aria-label={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
-                // eslint-disable-next-line compat/compat
-                disabled={!document.pictureInPictureEnabled}
+                disabled={!('pictureInPictureEnabled' in document)}
                 className={clsx(
                   'inline-block flex-none border-0 bg-transparent px-[6px] py-[5px] text-[16px] text-white/75 opacity-75 outline-none hover:text-white hover:opacity-100 focus:text-white focus:opacity-100 active:text-white active:opacity-100',
                   {
                     'py-[10px]': fullscreen,
-                    // eslint-disable-next-line compat/compat
-                    'opacity-50 cursor-not-allowed': !document.pictureInPictureEnabled,
+                    'opacity-50 cursor-not-allowed': !('pictureInPictureEnabled' in document),
                   },
                 )}
                 onClick={togglePiP}
