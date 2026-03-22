@@ -56,7 +56,7 @@ const Audio: React.FC<IAudio> = (props) => {
     fullscreen,
     autoPlay,
     editable,
-    deployPictureInPicture = false,
+    deployPictureInPicture = true,
   } = props;
 
   const intl = useIntl();
