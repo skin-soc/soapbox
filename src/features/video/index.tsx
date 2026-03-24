@@ -521,7 +521,7 @@ const Video: React.FC<IVideo> = ({
       document.removeEventListener('mozfullscreenchange', handleFullscreenChange, true);
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange, true);
     };
-  }, [handleFullscreenChange, handleResize, handleScroll]);
+  }, []);
 
   useEffect(() => {
     if (!visible) {
@@ -574,7 +574,7 @@ const Video: React.FC<IVideo> = ({
         aria-label={alt}
         title={alt}
         className={clsx(
-          'absolute left-0 top-0 z-20 size-full rounded-lg object-cover transition-opacity duration-500 ease-linear',
+          'relative z-10 block',
           {
             'max-h-full object-contain': inline && !fullscreen,
             'max-w-full max-h-full w-full h-full outline-none': fullscreen,
@@ -593,10 +593,7 @@ const Video: React.FC<IVideo> = ({
         onProgress={handleProgress}
         onVolumeChange={handleVolumeChange}
         muted={muted}
-        poster='/skinheads.jpg'
-        playsInline
-        webkitPlaysInline
-        {...({ webkitPlaysInline: true } as any)}
+        poster='url(/skinheads.jpg)'
       />
       <div
         className={clsx(
@@ -720,7 +717,7 @@ const Video: React.FC<IVideo> = ({
               </span>
             )}
           </div>
-          <div className='flex min-w-[30px] flex-auto items-center justify-end gap-1 truncate text-[16px]'>
+          <div className='flex min-w-[30px] flex-auto items-center truncate text-[16px]'>
             {/* PiP button - always show on desktop, only show on mobile */}
             {(isMobile || true) && (  // change 'true' to 'false' if you ever want to hide PiP on desktop
               <button
