@@ -1,5 +1,7 @@
 import arrowsMaximizeIcon from '@tabler/icons/outline/arrows-maximize.svg';
 import arrowsMinimizeIcon from '@tabler/icons/outline/arrows-minimize.svg';
+import pictureInPictureOnIcon from '@tabler/icons/outline/picture-in-picture-on.svg';
+import pictureInPictureIcon from '@tabler/icons/outline/picture-in-picture.svg';
 import playerPauseIcon from '@tabler/icons/outline/player-pause.svg';
 import playerPlayIcon from '@tabler/icons/outline/player-play.svg';
 import volume3Icon from '@tabler/icons/outline/volume-3.svg';
@@ -27,49 +29,37 @@ const messages = defineMessages({
   unmute: { id: 'video.unmute', defaultMessage: 'Unmute sound' },
   fullscreen: { id: 'video.fullscreen', defaultMessage: 'Full screen' },
   exit_fullscreen: { id: 'video.exit_fullscreen', defaultMessage: 'Exit full screen' },
+  pip: { id: 'video.pip', defaultMessage: 'Picture-in-Picture' },
+  exit_pip: { id: 'video.exit_pip', defaultMessage: 'Exit Picture-in-Picture' },
 });
 
 export const formatTime = (secondsNum: number): string => {
   let hours: number | string = Math.floor(secondsNum / 3600);
   let minutes: number | string = Math.floor((secondsNum - (hours * 3600)) / 60);
   let seconds: number | string = secondsNum - (hours * 3600) - (minutes * 60);
-
   if (hours < 10) hours = '0' + hours;
   if (minutes < 10) minutes = '0' + minutes;
   if (seconds < 10) seconds = '0' + seconds;
-
   return (hours === '00' ? '' : `${hours}:`) + `${minutes}:${seconds}`;
 };
 
 export const findElementPosition = (el: HTMLElement) => {
   let box;
-
   if (el.getBoundingClientRect && el.parentNode) {
     box = el.getBoundingClientRect();
   }
-
   if (!box) {
-    return {
-      left: 0,
-      top: 0,
-    };
+    return { left: 0, top: 0 };
   }
-
   const docEl = document.documentElement;
   const body = document.body;
-
   const clientLeft = docEl.clientLeft || body.clientLeft || 0;
   const scrollLeft = window.pageXOffset || body.scrollLeft;
   const left = (box.left + scrollLeft) - clientLeft;
-
   const clientTop = docEl.clientTop || body.clientTop || 0;
   const scrollTop = window.pageYOffset || body.scrollTop;
   const top = (box.top + scrollTop) - clientTop;
-
-  return {
-    left: Math.round(left),
-    top: Math.round(top),
-  };
+  return { left: Math.round(left), top: Math.round(top) };
 };
 
 export const getPointerPosition = (el: HTMLElement, event: MouseEvent & TouchEvent): Position => {
@@ -78,15 +68,12 @@ export const getPointerPosition = (el: HTMLElement, event: MouseEvent & TouchEve
   const boxH = el.offsetHeight;
   const boxY = box.top;
   const boxX = box.left;
-
   let pageY = event.pageY;
   let pageX = event.pageX;
-
   if (event.changedTouches) {
     pageX = event.changedTouches[0].pageX;
     pageY = event.changedTouches[0].pageY;
   }
-
   return {
     y: Math.max(0, Math.min(1, (pageY - boxY) / boxH)),
     x: Math.max(0, Math.min(1, (pageX - boxX) / boxW)),
@@ -97,7 +84,6 @@ export const fileNameFromURL = (str: string) => {
   const url = new URL(str);
   const pathname = url.pathname;
   const index = pathname.lastIndexOf('/');
-
   return pathname.substring(index + 1);
 };
 
@@ -137,7 +123,6 @@ const Video: React.FC<IVideo> = ({
 }) => {
   const intl = useIntl();
   const isMobile = useIsMobile();
-
   const player = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const seek = useRef<HTMLDivElement>(null);
@@ -152,6 +137,7 @@ const Video: React.FC<IVideo> = ({
   const [dragging, setDragging] = useState(false);
   const [containerWidth, setContainerWidth] = useState(width);
   const [fullscreen, setFullscreen] = useState(false);
+  const [isPiP, setIsPiP] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [volumeHovered, setVolumeHovered] = useState(false);
   const [seekHovered, setSeekHovered] = useState(false);
@@ -162,11 +148,9 @@ const Video: React.FC<IVideo> = ({
   const setDimensions = () => {
     if (player.current) {
       const { offsetWidth } = player.current;
-
       if (cacheWidth) {
         cacheWidth(offsetWidth);
       }
-
       setContainerWidth(offsetWidth);
     }
   };
@@ -194,9 +178,7 @@ const Video: React.FC<IVideo> = ({
 
   const handleTimeUpdate = () => {
     if (!video.current) return;
-
     const { duration, currentTime } = video.current;
-
     setCurrentTime(Math.floor(currentTime));
     setDuration(Number.isNaN(duration) || duration === Infinity ? 0 : Math.floor(duration));
   };
@@ -206,9 +188,7 @@ const Video: React.FC<IVideo> = ({
     document.addEventListener('mouseup', handleVolumeMouseUp, true);
     document.addEventListener('touchmove', handleMouseVolSlide, true);
     document.addEventListener('touchend', handleVolumeMouseUp, true);
-
     handleMouseVolSlide(e);
-
     e.preventDefault();
     e.stopPropagation();
   };
@@ -223,23 +203,19 @@ const Video: React.FC<IVideo> = ({
   const handleMouseVolSlide = throttle(e => {
     if (slider.current) {
       const { x } = getPointerPosition(slider.current, e);
-
       if (!isNaN(x)) {
         let slideamt = x;
-
         if (x > 1) {
           slideamt = 1;
         } else if (x < 0) {
           slideamt = 0;
         }
-
         if (video.current) {
           video.current.volume = slideamt;
           const isMuted = slideamt <= 0;
           video.current.muted = isMuted;
           setMuted(isMuted);
         }
-
         setVolume(slideamt);
       }
     }
@@ -250,11 +226,9 @@ const Video: React.FC<IVideo> = ({
     document.addEventListener('mouseup', handleMouseUp, true);
     document.addEventListener('touchmove', handleMouseMove, true);
     document.addEventListener('touchend', handleMouseUp, true);
-
     setDragging(true);
     video.current?.pause();
     handleMouseMove(e);
-
     e.preventDefault();
     e.stopPropagation();
   };
@@ -264,7 +238,6 @@ const Video: React.FC<IVideo> = ({
     document.removeEventListener('mouseup', handleMouseUp, true);
     document.removeEventListener('touchmove', handleMouseMove, true);
     document.removeEventListener('touchend', handleMouseUp, true);
-
     setDragging(false);
     video.current?.play();
   };
@@ -273,7 +246,6 @@ const Video: React.FC<IVideo> = ({
     if (seek.current && video.current) {
       const { x } = getPointerPosition(seek.current, e);
       const currentTime = Math.floor(video.current.duration * x);
-
       if (!isNaN(currentTime)) {
         video.current.currentTime = currentTime;
         setCurrentTime(currentTime);
@@ -284,7 +256,6 @@ const Video: React.FC<IVideo> = ({
   const seekBy = (time: number) => {
     if (video.current) {
       const currentTime = video.current.currentTime + time;
-
       if (!isNaN(currentTime)) {
         setCurrentTime(currentTime);
         video.current.currentTime = currentTime;
@@ -302,7 +273,6 @@ const Video: React.FC<IVideo> = ({
 
   const handleKeyDown: React.KeyboardEventHandler = e => {
     const frameTime = 1 / 25;
-
     switch (e.key) {
       case 'k':
         e.preventDefault();
@@ -340,11 +310,9 @@ const Video: React.FC<IVideo> = ({
         seekBy(frameTime);
         break;
     }
-
     if (fullscreen) {
       e.preventDefault();
       e.stopPropagation();
-
       if (e.key === 'Escape') {
         exitFullscreen();
       }
@@ -353,9 +321,7 @@ const Video: React.FC<IVideo> = ({
 
   const togglePlay = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-
     setPaused(!paused);
-
     if (paused) {
       video.current?.play();
     } else {
@@ -369,7 +335,25 @@ const Video: React.FC<IVideo> = ({
     } else if (player.current) {
       requestFullscreen(player.current);
     }
-  }; 
+  };
+
+  const togglePiP = async () => {
+    if (!video.current) return;
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiP(false);
+      } else if ('pictureInPictureEnabled' in document && document.pictureInPictureEnabled && video.current.disablePictureInPicture !== true) {
+        await video.current.requestPictureInPicture();
+        setIsPiP(true);
+      } else {
+        console.warn('Picture-in-Picture not supported or disabled');
+      }
+    } catch (err) {
+      console.error('Failed to toggle PiP:', err);
+    }
+  };
 
   const handleResize = useCallback(
     debounce(() => {
@@ -381,12 +365,10 @@ const Video: React.FC<IVideo> = ({
   const handleScroll = useCallback(
     throttle(() => {
       if (!video.current) return;
-
       const { top, height } = video.current.getBoundingClientRect();
       const inView =
         top <= (window.innerHeight || document.documentElement.clientHeight) &&
         top + height >= 0;
-
       if (!paused && !inView) {
         setPaused(true);
         video.current.pause();
@@ -440,7 +422,6 @@ const Video: React.FC<IVideo> = ({
       const muted = !video.current.muted;
       setMuted(muted);
       video.current.muted = muted;
-
       if (muted) {
         setPreVolume(video.current.volume);
         video.current.volume = 0;
@@ -470,6 +451,7 @@ const Video: React.FC<IVideo> = ({
   };
 
   const progress = (currentTime / duration) * 100;
+
   const playerStyle: React.CSSProperties = {};
 
   const startTimeout = () => {
@@ -483,7 +465,6 @@ const Video: React.FC<IVideo> = ({
   if (inline && containerWidth) {
     width = containerWidth;
     const minSize = containerWidth / (16 / 9);
-
     if (isPanoramic(aspectRatio)) {
       height = Math.max(Math.floor(containerWidth / maximumAspectRatio), minSize);
     } else if (isPortrait(aspectRatio)) {
@@ -491,7 +472,6 @@ const Video: React.FC<IVideo> = ({
     } else {
       height = Math.floor(containerWidth / aspectRatio);
     }
-
     playerStyle.height = height || DEFAULT_HEIGHT;
   }
 
@@ -504,18 +484,38 @@ const Video: React.FC<IVideo> = ({
   };
 
   useEffect(() => {
+    const onEnterPiP = () => setIsPiP(true);
+    const onLeavePiP = () => setIsPiP(false);
+
+    document.addEventListener('enterpictureinpicture', onEnterPiP);
+    document.addEventListener('leavepictureinpicture', onLeavePiP);
+
+    if (video.current) {
+      video.current.addEventListener('enterpictureinpicture', onEnterPiP);
+      video.current.addEventListener('leavepictureinpicture', onLeavePiP);
+    }
+
+    return () => {
+      document.removeEventListener('enterpictureinpicture', onEnterPiP);
+      document.removeEventListener('leavepictureinpicture', onLeavePiP);
+      if (video.current) {
+        video.current.removeEventListener('enterpictureinpicture', onEnterPiP);
+        video.current.removeEventListener('leavepictureinpicture', onLeavePiP);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     document.addEventListener('fullscreenchange', handleFullscreenChange, true);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange, true);
     document.addEventListener('mozfullscreenchange', handleFullscreenChange, true);
     document.addEventListener('MSFullscreenChange', handleFullscreenChange, true);
-
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', handleResize, { passive: true });
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
-
       document.removeEventListener('fullscreenchange', handleFullscreenChange, true);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange, true);
       document.removeEventListener('mozfullscreenchange', handleFullscreenChange, true);
@@ -551,11 +551,10 @@ const Video: React.FC<IVideo> = ({
           className='absolute left-0 top-0 z-10 size-full rounded-lg bg-cover bg-center transition-opacity duration-500 ease-linear'
           style={{
             backgroundImage: 'url(/skinheads.jpg)',
-            opacity: loaded ? 0 : 1, // fade out when video loads
+            opacity: loaded ? 0 : 1,
           }}
         />
       )}
-
       {!fullscreen && blurhash && (
         <Blurhash
           hash={blurhash}
@@ -565,11 +564,9 @@ const Video: React.FC<IVideo> = ({
           )}
         />
       )}
-
       <video
         ref={video}
         src={src}
-        preview='/skinheads.jpg'
         loop
         role='button'
         autoPlay
@@ -592,7 +589,7 @@ const Video: React.FC<IVideo> = ({
         onPlay={handlePlay}
         onPause={handlePause}
         onTimeUpdate={handleTimeUpdate}
-        onCanPlay={() => setLoaded(true)} // ensures video is ready before fade
+        onCanPlay={() => setLoaded(true)}
         onProgress={handleProgress}
         onVolumeChange={handleVolumeChange}
         muted={muted}
@@ -601,7 +598,6 @@ const Video: React.FC<IVideo> = ({
         webkitPlaysInline
         {...({ webkitPlaysInline: true } as any)}
       />
-
       <div
         className={clsx(
           'absolute inset-x-0 bottom-0 z-20 box-border bg-gradient-to-t from-black/70 to-transparent px-[15px] opacity-0 transition-opacity duration-100 ease-linear',
@@ -639,7 +635,6 @@ const Video: React.FC<IVideo> = ({
             onKeyDown={handleVideoKeyDown}
           />
         </div>
-
         <div className='my-[-5px] flex justify-between pb-2'>
           <div className='flex w-full flex-auto items-center truncate text-[16px]'>
             <button
@@ -655,7 +650,6 @@ const Video: React.FC<IVideo> = ({
             >
               <SvgIcon className='w-[20px]' src={paused ? playerPlayIcon : playerPauseIcon} />
             </button>
-
             <button
               type='button'
               title={intl.formatMessage(muted ? messages.unmute : messages.mute)}
@@ -670,7 +664,6 @@ const Video: React.FC<IVideo> = ({
             >
               <SvgIcon className='w-[20px]' src={muted ? volume3Icon : volumeIcon} />
             </button>
-
             <div
               className={clsx(
                 'relative inline-flex h-6 flex-none cursor-pointer overflow-hidden transition-all duration-100 ease-linear',
@@ -712,7 +705,6 @@ const Video: React.FC<IVideo> = ({
                 style={{ left: `${muted ? 0 : volume * 100}%` }}
               />
             </div>
-
             <span>
               <span className='text-sm font-medium text-white/75'>{formatTime(currentTime)}</span>
               {duration > 0 && (
@@ -722,27 +714,54 @@ const Video: React.FC<IVideo> = ({
                 </>
               )}
             </span>
-
             {link && (
               <span className='px-[2px] py-[10px] text-[14px] font-medium text-white no-underline hover:underline focus:underline active:underline'>
                 {link}
               </span>
             )}
           </div>
+          <div className='flex min-w-[30px] flex-auto items-center justify-end gap-1 truncate text-[16px]'>
+            {/* PiP button - always show on desktop, only show on mobile */}
+            {(isMobile || true) && (  // change 'true' to 'false' if you ever want to hide PiP on desktop
+              <button
+                type='button'
+                title={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
+                aria-label={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
+                // eslint-disable-next-line compat/compat
+                disabled={!('pictureInPictureEnabled' in document) || !document.pictureInPictureEnabled}
+                className={clsx(
+                  'inline-block flex-none border-0 bg-transparent px-[6px] py-[5px] text-[16px] text-white/75 opacity-75 outline-none hover:text-white hover:opacity-100 focus:text-white focus:opacity-100 active:text-white active:opacity-100',
+                  {
+                    'py-[10px]': fullscreen,
+                    // eslint-disable-next-line compat/compat
+                    'opacity-50 cursor-not-allowed': !document.pictureInPictureEnabled,
+                  },
+                )}
+                onClick={togglePiP}
+              >
+                <SvgIcon
+                  className='w-[20px]'
+                  src={isPiP ? pictureInPictureOnIcon : pictureInPictureIcon}  // ← use dedicated icons if imported
+                // OR fallback: src={isPiP ? arrowsMinimizeIcon : arrowsMaximizeIcon}
+                />
+              </button>
+            )}
 
-          <div className='flex min-w-[30px] flex-auto items-center truncate text-[16px]'>
-            <button
-              type='button'
-              title={intl.formatMessage(fullscreen ? messages.exit_fullscreen : messages.fullscreen)}
-              aria-label={intl.formatMessage(fullscreen ? messages.exit_fullscreen : messages.fullscreen)}
-              className={clsx(
-                'inline-block flex-none border-0 bg-transparent px-[6px] py-[5px] text-[16px] text-white/75 opacity-75 outline-none hover:text-white hover:opacity-100 focus:text-white focus:opacity-100 active:text-white active:opacity-100',
-                { 'py-[10px]': fullscreen },
-              )}
-              onClick={toggleFullscreen}
-            >
-              <SvgIcon className='w-[20px]' src={fullscreen ? arrowsMinimizeIcon : arrowsMaximizeIcon} />
-            </button>
+            {/* Fullscreen button - only on non-mobile */}
+            {!isMobile && (
+              <button
+                type='button'
+                title={intl.formatMessage(fullscreen ? messages.exit_fullscreen : messages.fullscreen)}
+                aria-label={intl.formatMessage(fullscreen ? messages.exit_fullscreen : messages.fullscreen)}
+                className={clsx(
+                  'inline-block flex-none border-0 bg-transparent px-[6px] py-[5px] text-[16px] text-white/75 opacity-75 outline-none hover:text-white hover:opacity-100 focus:text-white focus:opacity-100 active:text-white active:opacity-100',
+                  { 'py-[10px]': fullscreen },
+                )}
+                onClick={toggleFullscreen}
+              >
+                <SvgIcon className='w-[20px]' src={fullscreen ? arrowsMinimizeIcon : arrowsMaximizeIcon} />
+              </button>
+            )}
           </div>
         </div>
       </div>

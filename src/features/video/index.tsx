@@ -87,6 +87,23 @@ export const fileNameFromURL = (str: string) => {
   return pathname.substring(index + 1);
 };
 
+/**
+ * Returns true if PiP is supported in the current context.
+ * Checks both the standard API and the webkit fallback for iOS Safari.
+ */
+const isPiPSupported = (videoEl: HTMLVideoElement): boolean => {
+  // Standard API
+  if ('pictureInPictureEnabled' in document && document.pictureInPictureEnabled && !videoEl.disablePictureInPicture) {
+    return true;
+  }
+  // Webkit fallback (iOS Safari, some older macOS Safari)
+  const vid = videoEl as any;
+  if (typeof vid.webkitSupportsPresentationMode === 'function' && vid.webkitSupportsPresentationMode('picture-in-picture')) {
+    return true;
+  }
+  return false;
+};
+
 interface IVideo {
   preview?: string;
   src: string;
@@ -138,6 +155,7 @@ const Video: React.FC<IVideo> = ({
   const [containerWidth, setContainerWidth] = useState(width);
   const [fullscreen, setFullscreen] = useState(false);
   const [isPiP, setIsPiP] = useState(false);
+  const [pipSupported, setPipSupported] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [volumeHovered, setVolumeHovered] = useState(false);
   const [seekHovered, setSeekHovered] = useState(false);
@@ -163,8 +181,21 @@ const Video: React.FC<IVideo> = ({
     if (video.current) {
       setVolume(video.current.volume);
       setMuted(video.current.muted);
+      // Detect PiP support after the video element is available.
+      // We defer to next tick so the element is fully initialised.
+      const checkPiP = () => setPipSupported(isPiPSupported(video.current!));
+      checkPiP();
+      video.current.addEventListener('loadedmetadata', checkPiP, { once: true });
     }
   }, [video.current]);
+
+  // Set up Media Session metadata so the OS/PWA media controls are aware of
+  // this video, which improves PiP integration in standalone PWA contexts.
+  useEffect(() => {
+    if ('mediaSession' in navigator && alt) {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: alt });
+    }
+  }, [alt]);
 
   const handleClickRoot: React.MouseEventHandler = e => e.stopPropagation();
 
@@ -330,9 +361,22 @@ const Video: React.FC<IVideo> = ({
   };
 
   const toggleFullscreen = () => {
+    const vid = video.current as any;
+
     if (isFullscreen()) {
       exitFullscreen();
-    } else if (player.current) {
+      return;
+    }
+
+    // iOS Safari does not support the Fullscreen API on arbitrary elements.
+    // It does support webkitEnterFullscreen on <video> elements directly,
+    // which hands off to the native player — the best available option on iOS.
+    if (!document.fullscreenEnabled && typeof vid?.webkitEnterFullscreen === 'function') {
+      vid.webkitEnterFullscreen();
+      return;
+    }
+
+    if (player.current) {
       requestFullscreen(player.current);
     }
   };
@@ -340,16 +384,50 @@ const Video: React.FC<IVideo> = ({
   const togglePiP = async () => {
     if (!video.current) return;
 
+    const vid = video.current as any;
+
     try {
+      // --- Exit PiP ---
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
         setIsPiP(false);
-      } else if ('pictureInPictureEnabled' in document && document.pictureInPictureEnabled && video.current.disablePictureInPicture !== true) {
+        return;
+      }
+      // Webkit exit
+      if (typeof vid.webkitPresentationMode === 'string' && vid.webkitPresentationMode === 'picture-in-picture') {
+        vid.webkitSetPresentationMode('inline');
+        setIsPiP(false);
+        return;
+      }
+
+      // --- Enter PiP ---
+      // PiP requires the video to be playing. Attempt playback first so the
+      // user gesture is not lost by the time we call requestPictureInPicture.
+      if (video.current.paused) {
+        try {
+          await video.current.play();
+          setPaused(false);
+        } catch {
+          // Play was blocked (e.g. autoplay policy) — proceed anyway; the PiP
+          // request might still succeed on some browsers even when paused.
+        }
+      }
+
+      // Standard API
+      if ('requestPictureInPicture' in video.current && document.pictureInPictureEnabled && !video.current.disablePictureInPicture) {
         await video.current.requestPictureInPicture();
         setIsPiP(true);
-      } else {
-        console.warn('Picture-in-Picture not supported or disabled');
+        return;
       }
+
+      // Webkit fallback (iOS Safari, older macOS Safari)
+      if (typeof vid.webkitSupportsPresentationMode === 'function' && vid.webkitSupportsPresentationMode('picture-in-picture')) {
+        vid.webkitSetPresentationMode('picture-in-picture');
+        setIsPiP(true);
+        return;
+      }
+
+      console.warn('Picture-in-Picture not supported in this context');
     } catch (err) {
       console.error('Failed to toggle PiP:', err);
     }
@@ -490,9 +568,22 @@ const Video: React.FC<IVideo> = ({
     document.addEventListener('enterpictureinpicture', onEnterPiP);
     document.addEventListener('leavepictureinpicture', onLeavePiP);
 
+    const onWebkitBeginFS = () => setFullscreen(true);
+    const onWebkitEndFS = () => setFullscreen(false);
+    const onWebkitPresentationChange = () => {
+      const vid = video.current as any;
+      setIsPiP(vid?.webkitPresentationMode === 'picture-in-picture');
+    };
+
     if (video.current) {
       video.current.addEventListener('enterpictureinpicture', onEnterPiP);
       video.current.addEventListener('leavepictureinpicture', onLeavePiP);
+      // iOS Safari fullscreen events (webkitbeginfullscreen / webkitendfullscreen)
+      // iOS does not fire fullscreenchange so we track state via these instead.
+      video.current.addEventListener('webkitbeginfullscreen', onWebkitBeginFS);
+      video.current.addEventListener('webkitendfullscreen', onWebkitEndFS);
+      // Webkit PiP presentation mode change
+      video.current.addEventListener('webkitpresentationmodechanged', onWebkitPresentationChange);
     }
 
     return () => {
@@ -501,6 +592,9 @@ const Video: React.FC<IVideo> = ({
       if (video.current) {
         video.current.removeEventListener('enterpictureinpicture', onEnterPiP);
         video.current.removeEventListener('leavepictureinpicture', onLeavePiP);
+        video.current.removeEventListener('webkitbeginfullscreen', onWebkitBeginFS);
+        video.current.removeEventListener('webkitendfullscreen', onWebkitEndFS);
+        video.current.removeEventListener('webkitpresentationmodechanged', onWebkitPresentationChange);
       }
     };
   }, []);
@@ -534,9 +628,12 @@ const Video: React.FC<IVideo> = ({
       role='menuitem'
       className={clsx(
         'relative box-border flex max-w-full overflow-hidden rounded-[10px] bg-black text-white focus:outline-0',
-        { 'w-full h-full m-0': fullscreen },
+        { 'w-screen m-0 rounded-none': fullscreen },
       )}
-      style={containerStyle}
+      style={{
+        ...containerStyle,
+        ...(fullscreen ? { height: '100dvh' } : {}),
+      }}
       ref={player}
       onClick={handleClickRoot}
       onMouseMove={handleOnMouseMove}
@@ -574,10 +671,11 @@ const Video: React.FC<IVideo> = ({
         aria-label={alt}
         title={alt}
         className={clsx(
-          'absolute left-0 top-0 z-20 size-full rounded-lg object-cover transition-opacity duration-500 ease-linear',
+          'absolute left-0 top-0 z-20 size-full rounded-lg transition-opacity duration-500 ease-linear',
           {
-            'max-h-full object-contain': inline && !fullscreen,
-            'max-w-full max-h-full w-full h-full outline-none': fullscreen,
+            'object-cover': !fullscreen,
+            'object-contain': inline && !fullscreen,
+            'max-w-full max-h-full w-full h-full object-contain outline-none rounded-none': fullscreen,
             'opacity-0': !loaded,
             'opacity-100': loaded,
           },
@@ -589,7 +687,12 @@ const Video: React.FC<IVideo> = ({
         onPlay={handlePlay}
         onPause={handlePause}
         onTimeUpdate={handleTimeUpdate}
-        onCanPlay={() => setLoaded(true)}
+        onCanPlay={() => {
+          setLoaded(true);
+          // Re-check PiP support once the video is ready, as some browsers
+          // only expose it after metadata / stream info is available.
+          if (video.current) setPipSupported(isPiPSupported(video.current));
+        }}
         onProgress={handleProgress}
         onVolumeChange={handleVolumeChange}
         muted={muted}
@@ -721,28 +824,21 @@ const Video: React.FC<IVideo> = ({
             )}
           </div>
           <div className='flex min-w-[30px] flex-auto items-center justify-end gap-1 truncate text-[16px]'>
-            {/* PiP button - always show on desktop, only show on mobile */}
-            {(isMobile || true) && (  // change 'true' to 'false' if you ever want to hide PiP on desktop
+            {/* PiP button — shown whenever PiP is detected as supported */}
+            {pipSupported && (
               <button
                 type='button'
                 title={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
                 aria-label={intl.formatMessage(isPiP ? messages.exit_pip : messages.pip)}
-                // eslint-disable-next-line compat/compat
-                disabled={!('pictureInPictureEnabled' in document) || !document.pictureInPictureEnabled}
                 className={clsx(
                   'inline-block flex-none border-0 bg-transparent px-[6px] py-[5px] text-[16px] text-white/75 opacity-75 outline-none hover:text-white hover:opacity-100 focus:text-white focus:opacity-100 active:text-white active:opacity-100',
-                  {
-                    'py-[10px]': fullscreen,
-                    // eslint-disable-next-line compat/compat
-                    'opacity-50 cursor-not-allowed': !document.pictureInPictureEnabled,
-                  },
+                  { 'py-[10px]': fullscreen },
                 )}
                 onClick={togglePiP}
               >
                 <SvgIcon
                   className='w-[20px]'
-                  src={isPiP ? pictureInPictureOnIcon : pictureInPictureIcon}  // ← use dedicated icons if imported
-                // OR fallback: src={isPiP ? arrowsMinimizeIcon : arrowsMaximizeIcon}
+                  src={isPiP ? pictureInPictureOnIcon : pictureInPictureIcon}
                 />
               </button>
             )}
