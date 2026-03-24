@@ -24,6 +24,7 @@ const AccountCard: React.FC<IAccountCard> = ({ id }) => {
   if (!account) return null;
 
   const followedBy = me !== account.id && account.relationship?.followed_by;
+  const isToday = account.last_status_at === new Date().toISOString().slice(0, 10);
 
   return (
     <div className='flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow dark:divide-primary-700 dark:bg-primary-800'>
@@ -87,18 +88,25 @@ const AccountCard: React.FC<IAccountCard> = ({ id }) => {
         <Stack>
           <Text theme='primary' size='md' weight='medium'>
             {account.last_status_at ? (
-              <RelativeTimestamp theme='inherit' timestamp={account.last_status_at} />
+              <span className={isToday ? 'animate-flash' : undefined}>
+                <RelativeTimestamp
+                  theme='inherit'
+                  timestamp={account.last_status_at.length === 10
+                    ? `${account.last_status_at}T12:00:00`
+                    : account.last_status_at}
+                />
+              </span>
             ) : (
               <FormattedMessage id='account.never_active' defaultMessage='Never' />
             )}
           </Text>
 
           <Text theme='muted' size='sm'>
-            <FormattedMessage id='account.last_status' defaultMessage='Last active' />
+            <FormattedMessage id='account.last_status' defaultMessage='Last stomp' />
           </Text>
         </Stack>
       </div>
-    </div>
+    </div >
   );
 };
 

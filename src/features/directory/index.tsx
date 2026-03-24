@@ -36,7 +36,7 @@ const Directory = () => {
   const isLoading = useAppSelector((state) => state.user_lists.directory.isLoading);
 
   const [order, setOrder] = useState(params.get('order') || 'active');
-  const [local, setLocal] = useState(!!params.get('local'));
+  const [local, setLocal] = useState(params.get('local') !== '0');
 
   useEffect(() => {
     dispatch(fetchDirectory({ order: order || 'active', local: local || false }));

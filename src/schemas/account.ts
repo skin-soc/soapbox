@@ -55,7 +55,7 @@ const baseAccountSchema = z.object({
   header: z.string().url().catch(headerMissing),
   header_static: z.string().url().optional().catch(undefined),
   id: z.string(),
-  last_status_at: z.string().datetime().optional().catch(undefined),
+  last_status_at: z.string().regex(/^\d{4}-\d{2}-\d{2}/).optional().catch(undefined),
   local: z.boolean().catch(false),
   location: z.string().optional().catch(undefined),
   locked: z.boolean().catch(false),

@@ -105,6 +105,7 @@ const config: Config = {
         'sonar-scale-1': 'sonar-scale-1 3s 1.5s linear infinite',
         'enter': 'enter 200ms ease-out',
         'leave': 'leave 150ms ease-in forwards',
+        'flash': 'flash 1s ease-in-out infinite',
       },
       keyframes: {
         'loader-figure': {
@@ -166,6 +167,10 @@ const config: Config = {
         leave: {
           from: { transform: 'scale(1)', opacity: '1' },
           to: { transform: 'scale(0.9)', opacity: '0' },
+        },
+        'flash': {
+          '0%, 100%': { opacity: '1', color: '#ffffff' },
+          '50%': { opacity: '0.5', color: '#931020' },
         },
       },
     },
