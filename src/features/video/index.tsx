@@ -98,8 +98,14 @@ const isPiPSupported = (videoEl: HTMLVideoElement): boolean => {
   }
   // Webkit fallback (iOS Safari, some older macOS Safari)
   const vid = videoEl as any;
-  if (typeof vid.webkitSupportsPresentationMode === 'function' && vid.webkitSupportsPresentationMode('picture-in-picture')) {
-    return true;
+  if (typeof vid.webkitSupportsPresentationMode === 'function') {
+    try {
+      return vid.webkitSupportsPresentationMode('picture-in-picture');
+    } catch (e) {
+      // webkitSupportsPresentationMode might throw on some configurations
+      console.debug('webkitSupportsPresentationMode check failed:', e);
+      return false;
+    }
   }
   return false;
 };
@@ -387,14 +393,16 @@ const Video: React.FC<IVideo> = ({
     const vid = video.current as any;
 
     try {
-      // --- Exit PiP ---
+      // --- Exit PiP (Standard API) ---
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
         setIsPiP(false);
         return;
       }
-      // Webkit exit
-      if (typeof vid.webkitPresentationMode === 'string' && vid.webkitPresentationMode === 'picture-in-picture') {
+
+      // --- Exit PiP (Webkit) ---
+      // on iOS, we need to check if webkitPresentationMode exists and its value
+      if (vid.webkitPresentationMode && vid.webkitPresentationMode === 'picture-in-picture') {
         vid.webkitSetPresentationMode('inline');
         setIsPiP(false);
         return;
@@ -422,9 +430,17 @@ const Video: React.FC<IVideo> = ({
 
       // Webkit fallback (iOS Safari, older macOS Safari)
       if (typeof vid.webkitSupportsPresentationMode === 'function' && vid.webkitSupportsPresentationMode('picture-in-picture')) {
-        vid.webkitSetPresentationMode('picture-in-picture');
-        setIsPiP(true);
-        return;
+        // Ensure video is ready before calling webkitSetPresentationMode
+        if (vid.readyState >= 2) { // HAVE_CURRENT_DATA or better
+          vid.webkitSetPresentationMode('picture-in-picture');
+          setIsPiP(true);
+          return;
+        } else {
+          // Video not ready yet, but element supports it - try anyway
+          vid.webkitSetPresentationMode('picture-in-picture');
+          setIsPiP(true);
+          return;
+        }
       }
 
       console.warn('Picture-in-Picture not supported in this context');
