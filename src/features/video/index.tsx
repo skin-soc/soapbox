@@ -88,15 +88,33 @@ export const fileNameFromURL = (str: string) => {
 };
 
 /**
+ * Detects if the app is running as a PWA (installed app mode) vs browser
+ */
+const isRunningAsPWA = (): boolean => {
+  // Check if running in standalone mode (home screen app)
+  if ((navigator as any).standalone === true) return true;
+  // Check PWA display mode
+  if (window.matchMedia('(display-mode: standalone)').matches) return true;
+  if (window.matchMedia('(display-mode: fullscreen)').matches) return true;
+  return false;
+};
+
+/**
  * Returns true if PiP is supported in the current context.
  * Checks both the standard API and the webkit fallback for iOS Safari.
+ * Note: PiP is not supported in iOS PWA (app mode), only in Safari browser.
  */
 const isPiPSupported = (videoEl: HTMLVideoElement): boolean => {
+  // iOS PWA does not support PiP regardless of API availability
+  if (isRunningAsPWA() && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+    return false;
+  }
+
   // Standard API
   if ('pictureInPictureEnabled' in document && document.pictureInPictureEnabled && !videoEl.disablePictureInPicture) {
     return true;
   }
-  // Webkit fallback (iOS Safari, PWA contexts, some older macOS Safari)
+  // Webkit fallback (iOS Safari, some older macOS Safari)
   const vid = videoEl as any;
   if (typeof vid.webkitSupportsPresentationMode === 'function') {
     try {
