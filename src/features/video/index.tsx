@@ -12,6 +12,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { defineMessages, useIntl } from 'react-intl';
 
 import Blurhash from '@/components/blurhash.tsx';
+import Spinner from '@/components/ui/spinner.tsx';
 import SvgIcon from '@/components/ui/svg-icon.tsx';
 import { useIsMobile } from '@/hooks/useIsMobile.ts';
 import { isPanoramic, isPortrait, minimumAspectRatio, maximumAspectRatio } from '@/utils/media-aspect-ratio.ts';
@@ -588,7 +589,7 @@ const Video: React.FC<IVideo> = ({
 
   const containerStyle: React.CSSProperties = {
     ...playerStyle,
-    backgroundImage: preview ? 'url(/skinheads.jpg)' : undefined,
+    backgroundImage: preview ? 'url(/skins.jpg)' : undefined,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
@@ -680,7 +681,7 @@ const Video: React.FC<IVideo> = ({
         <div
           className='absolute left-0 top-0 z-10 size-full rounded-lg bg-cover bg-center transition-opacity duration-500 ease-linear'
           style={{
-            backgroundImage: 'url(/skinheads.jpg)',
+            backgroundImage: 'url(/skins.jpg)',
             opacity: loaded ? 0 : 1,
           }}
         />
@@ -693,6 +694,17 @@ const Video: React.FC<IVideo> = ({
             { 'opacity-0': loaded },
           )}
         />
+      )}
+      {/* Loading spinner — visible until video can play, then fades out */}
+      {!fullscreen && (
+        <div
+          className={clsx(
+            'absolute left-0 top-0 z-30 flex size-full items-center justify-center rounded-lg transition-opacity duration-500 ease-linear',
+            { 'opacity-0 pointer-events-none': loaded },
+          )}
+        >
+          <Spinner size={48} withText={false} />
+        </div>
       )}
       <video
         ref={video}
@@ -729,7 +741,7 @@ const Video: React.FC<IVideo> = ({
         onProgress={handleProgress}
         onVolumeChange={handleVolumeChange}
         muted={muted}
-        poster='/skinheads.jpg'
+        poster='/skins.jpg'
         playsInline
         webkitPlaysInline
         {...({ webkitPlaysInline: true } as any)}
