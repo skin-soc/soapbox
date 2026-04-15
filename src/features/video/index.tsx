@@ -633,7 +633,7 @@ const Video: React.FC<IVideo> = ({
 
   const containerStyle: React.CSSProperties = {
     ...playerStyle,
-    backgroundImage: preview ? 'url(/skins.jpg)' : undefined,
+    backgroundImage: preview ? 'url(/skinheads.jpg)' : undefined,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
@@ -727,7 +727,7 @@ const Video: React.FC<IVideo> = ({
         <div
           className='absolute left-0 top-0 z-10 size-full rounded-lg bg-cover bg-center transition-opacity duration-500 ease-linear'
           style={{
-            backgroundImage: 'url(/skins.jpg)',
+            backgroundImage: 'url(/skinheads.jpg)',
             opacity: loaded ? 0 : 1,
           }}
         />
