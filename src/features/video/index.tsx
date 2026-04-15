@@ -21,6 +21,14 @@ import { isFullscreen, requestFullscreen, exitFullscreen } from '../ui/util/full
 
 const DEFAULT_HEIGHT = 300;
 
+/**
+ * How much of the video must be buffered (as a fraction of total duration)
+ * before we reveal the player and begin playback. 0.25 = 25%.
+ * Once this threshold is met once, the video is considered "loaded" and
+ * subsequent buffer stalls only show the mid-play buffering spinner.
+ */
+const BUFFER_REVEAL_THRESHOLD = 0.25;
+
 type Position = { x: number; y: number };
 
 const messages = defineMessages({
@@ -92,9 +100,7 @@ export const fileNameFromURL = (str: string) => {
  * Detects if the app is running as a PWA (installed app mode) vs browser
  */
 const isRunningAsPWA = (): boolean => {
-  // Check if running in standalone mode (home screen app)
   if ((navigator as any).standalone === true) return true;
-  // Check PWA display mode
   if (window.matchMedia('(display-mode: standalone)').matches) return true;
   if (window.matchMedia('(display-mode: fullscreen)').matches) return true;
   return false;
@@ -106,22 +112,17 @@ const isRunningAsPWA = (): boolean => {
  * Note: PiP is not supported in iOS PWA (app mode), only in Safari browser.
  */
 const isPiPSupported = (videoEl: HTMLVideoElement): boolean => {
-  // iOS PWA does not support PiP regardless of API availability
   if (isRunningAsPWA() && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
     return false;
   }
-
-  // Standard API
   if ('pictureInPictureEnabled' in document && document.pictureInPictureEnabled && !videoEl.disablePictureInPicture) {
     return true;
   }
-  // Webkit fallback (iOS Safari, some older macOS Safari)
   const vid = videoEl as any;
   if (typeof vid.webkitSupportsPresentationMode === 'function') {
     try {
       return vid.webkitSupportsPresentationMode('picture-in-picture');
     } catch (e) {
-      // webkitSupportsPresentationMode might throw on some configurations
       return false;
     }
   }
@@ -185,7 +186,18 @@ const Video: React.FC<IVideo> = ({
   const [seekHovered, setSeekHovered] = useState(false);
   const [muted, setMuted] = useState(true);
   const [buffer, setBuffer] = useState(0);
+
+  /**
+   * `loaded` — true once the 25% buffer threshold has been crossed for the
+   * first time. Controls poster/blurhash fade-out and initial spinner hide.
+   */
   const [loaded, setLoaded] = useState(false);
+
+  /**
+   * `buffering` — true while the browser is stalled waiting for data during
+   * playback (fires after initial load). Drives the mid-play spinner overlay.
+   */
+  const [buffering, setBuffering] = useState(false);
 
   const setDimensions = () => {
     if (player.current) {
@@ -205,16 +217,12 @@ const Video: React.FC<IVideo> = ({
     if (video.current) {
       setVolume(video.current.volume);
       setMuted(video.current.muted);
-      // Detect PiP support after the video element is available.
-      // We defer to next tick so the element is fully initialised.
       const checkPiP = () => setPipSupported(isPiPSupported(video.current!));
       checkPiP();
       video.current.addEventListener('loadedmetadata', checkPiP, { once: true });
     }
   }, [video.current]);
 
-  // Set up Media Session metadata so the OS/PWA media controls are aware of
-  // this video, which improves PiP integration in standalone PWA contexts.
   useEffect(() => {
     if ('mediaSession' in navigator && alt) {
       navigator.mediaSession.metadata = new MediaMetadata({ title: alt });
@@ -225,6 +233,9 @@ const Video: React.FC<IVideo> = ({
 
   const handlePlay = () => {
     setPaused(false);
+    // If playback resumes (e.g. after a seek or buffer refill), clear the
+    // mid-play buffering indicator.
+    setBuffering(false);
   };
 
   const handlePause = () => {
@@ -392,9 +403,6 @@ const Video: React.FC<IVideo> = ({
       return;
     }
 
-    // iOS Safari does not support the Fullscreen API on arbitrary elements.
-    // It does support webkitEnterFullscreen on <video> elements directly,
-    // which hands off to the native player — the best available option on iOS.
     if (!document.fullscreenEnabled && typeof vid?.webkitEnterFullscreen === 'function') {
       vid.webkitEnterFullscreen();
       return;
@@ -411,49 +419,38 @@ const Video: React.FC<IVideo> = ({
     const vid = video.current as any;
 
     try {
-      // --- Exit PiP (Standard API) ---
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
         setIsPiP(false);
         return;
       }
 
-      // --- Exit PiP (Webkit) ---
       if (vid.webkitPresentationMode && vid.webkitPresentationMode === 'picture-in-picture') {
         vid.webkitSetPresentationMode('inline');
         setIsPiP(false);
         return;
       }
 
-      // --- Enter PiP ---
-      // PiP requires the video to be playing. Attempt playback first so the
-      // user gesture is not lost by the time we call requestPictureInPicture.
       if (video.current.paused) {
         try {
           await video.current.play();
           setPaused(false);
         } catch {
-          // Play was blocked (e.g. autoplay policy) — proceed anyway; the PiP
-          // request might still succeed on some browsers even when paused.
+          // Play was blocked — proceed anyway.
         }
       }
 
-      // Standard API
       if ('requestPictureInPicture' in video.current && document.pictureInPictureEnabled && !video.current.disablePictureInPicture) {
         await video.current.requestPictureInPicture();
         setIsPiP(true);
         return;
       }
 
-      // Webkit fallback (iOS Safari, PWA contexts, older macOS Safari)
       if (typeof vid.webkitSupportsPresentationMode === 'function') {
         try {
           const supportsWebkitPiP = vid.webkitSupportsPresentationMode('picture-in-picture');
-
           if (supportsWebkitPiP) {
-            // Call webkitSetPresentationMode with a small delay to ensure proper state
             vid.webkitSetPresentationMode('picture-in-picture');
-            // Give Safari time to process the request
             await new Promise(resolve => setTimeout(resolve, 100));
             setIsPiP(true);
             return;
@@ -545,9 +542,38 @@ const Video: React.FC<IVideo> = ({
     }
   };
 
+  /**
+   * Handles the video `progress` event (browser has downloaded more data).
+   *
+   * Two jobs:
+   * 1. Update the buffer-bar percentage (as before).
+   * 2. On the *first* time 25% of the video is buffered, flip `loaded` to true
+   *    so the poster/blurhash fades out and playback can start. After that
+   *    threshold has been crossed once we never flip `loaded` back — mid-play
+   *    stalls are handled separately via `buffering`.
+   */
   const handleProgress = () => {
-    if (video.current && video.current.buffered.length > 0) {
-      setBuffer((video.current.buffered.end(0) / video.current.duration) * 100);
+    if (!video.current || video.current.buffered.length === 0) return;
+
+    const bufferedEnd = video.current.buffered.end(0);
+    const dur = video.current.duration;
+
+    if (!isNaN(dur) && dur > 0) {
+      const bufferedFraction = bufferedEnd / dur;
+      setBuffer(bufferedFraction * 100);
+
+      // Reveal the player once 25% is buffered (fires at most once).
+      if (!loaded && bufferedFraction >= BUFFER_REVEAL_THRESHOLD) {
+        setLoaded(true);
+        // If the video was held back waiting for the threshold, kick off
+        // playback now (autoPlay may have been blocked while hidden).
+        if (video.current.paused) {
+          video.current.play().catch(() => {/* autoplay blocked — user must tap play */});
+        }
+      }
+    } else {
+      // Duration unknown (e.g. live stream) — just update the bar.
+      setBuffer((bufferedEnd / (video.current.duration || 1)) * 100);
     }
   };
 
@@ -560,6 +586,24 @@ const Video: React.FC<IVideo> = ({
 
   const handleTogglePlay = () => {
     if (!isMobile || paused || hovered) togglePlay();
+  };
+
+  /**
+   * `waiting` fires when playback stalls because the browser needs more data.
+   * Only show the buffering spinner if the video has already revealed itself
+   * (i.e. we're mid-play, not still in the initial loading phase).
+   */
+  const handleWaiting = () => {
+    if (loaded) setBuffering(true);
+  };
+
+  /**
+   * `playing` fires when playback actually starts/resumes after a stall.
+   * Clear the mid-play buffering spinner.
+   */
+  const handlePlaying = () => {
+    setBuffering(false);
+    setPaused(false);
   };
 
   const progress = (currentTime / duration) * 100;
@@ -612,11 +656,8 @@ const Video: React.FC<IVideo> = ({
     if (video.current) {
       video.current.addEventListener('enterpictureinpicture', onEnterPiP);
       video.current.addEventListener('leavepictureinpicture', onLeavePiP);
-      // iOS Safari fullscreen events (webkitbeginfullscreen / webkitendfullscreen)
-      // iOS does not fire fullscreenchange so we track state via these instead.
       video.current.addEventListener('webkitbeginfullscreen', onWebkitBeginFS);
       video.current.addEventListener('webkitendfullscreen', onWebkitEndFS);
-      // Webkit PiP presentation mode change
       video.current.addEventListener('webkitpresentationmodechanged', onWebkitPresentationChange);
     }
 
@@ -657,6 +698,11 @@ const Video: React.FC<IVideo> = ({
     }
   }, [visible]);
 
+  // Whether the spinner should be visible:
+  // - Before first load: !loaded
+  // - Mid-play stall: loaded && buffering
+  const showSpinner = !loaded || buffering;
+
   return (
     <div
       role='menuitem'
@@ -681,7 +727,7 @@ const Video: React.FC<IVideo> = ({
         <div
           className='absolute left-0 top-0 z-10 size-full rounded-lg bg-cover bg-center transition-opacity duration-500 ease-linear'
           style={{
-            backgroundImage: 'url(/skinheads.jpg)',
+            backgroundImage: 'url(/skins.jpg)',
             opacity: loaded ? 0 : 1,
           }}
         />
@@ -695,17 +741,32 @@ const Video: React.FC<IVideo> = ({
           )}
         />
       )}
-      {/* Loading spinner — visible until video can play, then fades out */}
+
+      {/*
+        Spinner overlay — two distinct roles:
+        1. Initial load: covers the whole player, fades once 25% is buffered.
+        2. Mid-play buffering: re-appears as a semi-transparent overlay so the
+           user can see the last rendered frame behind it.
+        The `buffering` class switches between these two visual modes.
+      */}
       {!fullscreen && (
         <div
           className={clsx(
-            'absolute left-0 top-0 z-30 flex size-full items-center justify-center rounded-lg transition-opacity duration-500 ease-linear',
-            { 'opacity-0 pointer-events-none': loaded },
+            'absolute left-0 top-0 z-30 flex size-full items-center justify-center rounded-lg transition-opacity duration-300 ease-linear',
+            {
+              // Initial load: fully opaque, hides everything beneath.
+              'bg-black/0': loaded && buffering,
+              // Mid-play stall: semi-transparent so the frozen frame shows.
+              'bg-black/40': loaded && buffering,
+              // Hidden entirely when not needed.
+              'opacity-0 pointer-events-none': !showSpinner,
+            },
           )}
         >
           <Spinner size={48} withText={false} />
         </div>
       )}
+
       <video
         ref={video}
         src={src}
@@ -731,17 +792,19 @@ const Video: React.FC<IVideo> = ({
         onKeyDown={handleVideoKeyDown}
         onPlay={handlePlay}
         onPause={handlePause}
+        onPlaying={handlePlaying}
+        onWaiting={handleWaiting}
         onTimeUpdate={handleTimeUpdate}
         onCanPlay={() => {
-          setLoaded(true);
-          // Re-check PiP support once the video is ready, as some browsers
-          // only expose it after metadata / stream info is available.
+          // Re-check PiP support once the video is ready.
           if (video.current) setPipSupported(isPiPSupported(video.current));
+          // Note: we no longer set `loaded` here — that is driven by
+          // handleProgress reaching BUFFER_REVEAL_THRESHOLD instead.
         }}
         onProgress={handleProgress}
         onVolumeChange={handleVolumeChange}
         muted={muted}
-        poster='/skinheads.jpg'
+        poster='/skins.jpg'
         playsInline
         webkitPlaysInline
         {...({ webkitPlaysInline: true } as any)}
@@ -869,7 +932,6 @@ const Video: React.FC<IVideo> = ({
             )}
           </div>
           <div className='flex min-w-[30px] flex-auto items-center justify-end gap-1 truncate text-[16px]'>
-            {/* PiP button — shown whenever PiP is detected as supported */}
             {pipSupported && (
               <button
                 type='button'
@@ -888,7 +950,6 @@ const Video: React.FC<IVideo> = ({
               </button>
             )}
 
-            {/* Fullscreen button - only on non-mobile */}
             {!isMobile && (
               <button
                 type='button'
