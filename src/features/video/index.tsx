@@ -27,7 +27,7 @@ const DEFAULT_HEIGHT = 300;
  * Once this threshold is met once, the video is considered "loaded" and
  * subsequent buffer stalls only show the mid-play buffering spinner.
  */
-const BUFFER_REVEAL_THRESHOLD = 0.25;
+const BUFFER_REVEAL_THRESHOLD = 0.1;
 
 type Position = { x: number; y: number };
 
