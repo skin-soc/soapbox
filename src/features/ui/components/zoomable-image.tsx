@@ -141,6 +141,8 @@ class ZoomableImage extends PureComponent<IZoomableImage> {
             transformOrigin: '0 0',
           }}
           onClick={this.handleClick}
+          draggable={false}
+          onDragStart={e => e.preventDefault()}
         />
       </div>
     );

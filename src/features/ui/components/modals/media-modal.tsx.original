@@ -2,6 +2,7 @@ import arrowLeftIcon from '@tabler/icons/outline/arrow-left.svg';
 import arrowRightIcon from '@tabler/icons/outline/arrow-right.svg';
 import arrowsMaximizeIcon from '@tabler/icons/outline/arrows-maximize.svg';
 import arrowsMinimizeIcon from '@tabler/icons/outline/arrows-minimize.svg';
+import downloadIcon from '@tabler/icons/outline/download.svg';
 import xIcon from '@tabler/icons/outline/x.svg';
 import clsx from 'clsx';
 import { debounce } from 'es-toolkit';
@@ -39,13 +40,17 @@ const messages = defineMessages({
   previous: { id: 'lightbox.previous', defaultMessage: 'Previous' },
 });
 
+// you can't use 100vh, because the viewport height is taller
+// than the visible part of the document in some mobile
+// browsers when it's address bar is visible.
+// https://developers.google.com/web/updates/2016/12/url-bar-resizing
 const swipeableViewsStyle: React.CSSProperties = {
   width: '100%',
   height: '100%',
 };
 
 const containerStyle: React.CSSProperties = {
-  alignItems: 'center',
+  alignItems: 'center', // center vertically
 };
 
 interface IMediaModal {
@@ -97,6 +102,11 @@ const MediaModal: React.FC<IMediaModal> = (props) => {
         e.stopPropagation();
         break;
     }
+  };
+
+  const handleDownload = () => {
+    const mediaItem = hasMultipleImages ? media[index as number] : media[0];
+    window.open(mediaItem?.url);
   };
 
   const getIndex = () => index !== null ? index : props.index;
@@ -191,11 +201,13 @@ const MediaModal: React.FC<IMediaModal> = (props) => {
     }
   }, 300, { edges: ['leading'] }), [next, status]);
 
+  /** Fetch the status (and context) from the API. */
   const fetchData = async () => {
     const { next } = await dispatch(fetchStatusWithContext(status?.id as string));
     setNext(next);
   };
 
+  // Load data.
   useEffect(() => {
     fetchData().then(() => {
       setIsLoaded(true);
@@ -259,21 +271,31 @@ const MediaModal: React.FC<IMediaModal> = (props) => {
                 iconClassName='h-5 w-5'
               />
 
-              {status && (
+              <HStack alignItems='center' space={2}>
                 <IconButton
-                  src={isFullScreen ? arrowsMinimizeIcon : arrowsMaximizeIcon}
-                  title={intl.formatMessage(isFullScreen ? messages.minimize : messages.expand)}
+                  src={downloadIcon}
                   theme='dark'
-                  className='hidden !p-1.5 hover:scale-105 hover:bg-gray-900 xl:block'
+                  className='!p-1.5 hover:scale-105 hover:bg-gray-900'
                   iconClassName='h-5 w-5'
-                  onClick={() => setIsFullScreen(!isFullScreen)}
+                  onClick={handleDownload}
                 />
-              )}
+
+                {status && (
+                  <IconButton
+                    src={isFullScreen ? arrowsMinimizeIcon : arrowsMaximizeIcon}
+                    title={intl.formatMessage(isFullScreen ? messages.minimize : messages.expand)}
+                    theme='dark'
+                    className='hidden !p-1.5 hover:scale-105 hover:bg-gray-900 xl:block'
+                    iconClassName='h-5 w-5'
+                    onClick={() => setIsFullScreen(!isFullScreen)}
+                  />
+                )}
+              </HStack>
             </HStack>
 
+            {/* Height based on height of top/bottom bars */}
             <div
               className='relative h-[calc(100vh-120px)] w-full grow'
-              onContextMenu={e => e.preventDefault()}
             >
               {hasMultipleImages && (
                 <div className={clsx('absolute inset-y-0 left-5 z-10 flex items-center transition-opacity', navigationHiddenClassName)}>

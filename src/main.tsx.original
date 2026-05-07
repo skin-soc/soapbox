@@ -35,9 +35,6 @@ if (BuildConfig.NODE_ENV === 'production') {
 }
 
 ready(() => {
-  // Set media access cookie for nginx authentication
-  document.cookie = 'media_access=TASN_1488_1312; path=/; domain=.skinheads.social; max-age=31536000; SameSite=Lax; Secure';
-
   const container = document.getElementById('soapbox') as HTMLElement;
   const root = createRoot(container);
 

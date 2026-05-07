@@ -29,6 +29,7 @@ export default defineConfig(() => {
     assetsInclude: ['**/*.oga'],
     server: {
       port: Number(PORT ?? 3036),
+      allowedHosts: ['localhost', 'dev.skinheads.social'],
     },
     plugins: [
       compileTime(),
